@@ -1,0 +1,136 @@
+version: v1.3.0
+
+dsn: memory
+
+serve:
+  public:
+    base_url: http://localhost:4433/
+    cors:
+      enabled: true
+      allowed_origins:
+        - http://localhost:3000
+        - http://localhost:4455
+        - http://localhost:19006
+        - exp://localhost:8081
+      allowed_methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowed_headers:
+        - Content-Type
+        - Authorization
+        - Cookie
+      exposed_headers:
+        - Set-Cookie
+      allow_credentials: true
+  admin:
+    base_url: http://kratos:4434/
+
+session:
+  whoami:
+    required_aal: aal1
+
+selfservice:
+  default_browser_return_url: http://localhost:3000/
+  allowed_return_urls:
+    - http://localhost:4455
+    - http://localhost:3000
+    - http://localhost:19006/Callback
+    - exp://localhost:8081/--/Callback
+
+  methods:
+    password:
+      enabled: true
+    webauthn:
+      enabled: false
+    passkey:
+      enabled: true
+      config:
+        rp:
+          display_name: Your Application name
+          id: localhost
+          origins:
+            - http://localhost:3000
+
+  flows:
+    error:
+      ui_url: http://localhost:3000/error
+
+    settings:
+      ui_url: http://localhost:3000/settings
+      privileged_session_max_age: 15m
+      required_aal: aal1
+
+    recovery:
+      enabled: false
+      ui_url: http://localhost:3000/recovery
+      use: code
+
+    verification:
+      enabled: false
+      ui_url: http://localhost:3000/verification
+      use: code
+      after:
+        default_browser_return_url: http://localhost:3000/
+
+    logout:
+      after:
+        default_browser_return_url: http://localhost:3000/login
+
+    login:
+      ui_url: http://localhost:3000/login
+      lifespan: 10m
+
+    registration:
+      enable_legacy_one_step: false
+      lifespan: 10m
+      ui_url: http://localhost:3000/register
+      after:
+        passkey:
+          hooks:
+            - hook: web_hook
+              config:
+                method: POST
+                url: http://webhook-proxy/api/v1/admin/webhooks/post-registration
+                body: base64://ZnVuY3Rpb24gKGN0eCkgewogIGV2ZW50OiAicmVnaXN0cmF0aW9uLmFmdGVyIiwKICBmbG93X2lkOiBjdHguZmxvdy5pZCwKICBmbG93X3R5cGU6IGN0eC5mbG93LnR5cGUsCiAgaWRlbnRpdHk6IHsKICAgIGlkOiBjdHguaWRlbnRpdHkuaWQsCiAgICBzY2hlbWFfaWQ6IGN0eC5pZGVudGl0eS5zY2hlbWFfaWQsCiAgICB0cmFpdHM6IGN0eC5pZGVudGl0eS50cmFpdHMsCiAgfSwKICByZXF1ZXN0OiB7CiAgICB1cmw6IGN0eC5yZXF1ZXN0X3VybCwKICAgIG1ldGhvZDogY3R4LnJlcXVlc3RfbWV0aG9kLAogIH0sCn0=
+                response:
+                  ignore: false
+                  parse: true
+                headers:
+                  Content-Type: application/json
+            - hook: session
+        password:
+          hooks:
+            - hook: session
+            - hook: show_verification_ui
+
+log:
+  level: debug
+  format: text
+  leak_sensitive_values: true
+
+secrets:
+  cookie:
+    - PLEASE-CHANGE-ME-I-AM-VERY-INSECURE
+  cipher:
+    - 32-LONG-SECRET-NOT-SECURE-AT-ALL
+
+ciphers:
+  algorithm: xchacha20-poly1305
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 8
+
+identity:
+  default_schema_id: default
+  schemas:
+    - id: default
+      url: file:///etc/config/kratos/identity.schema.json
+
+courier:
+  smtp:
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true

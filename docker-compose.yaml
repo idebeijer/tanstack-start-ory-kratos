@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:18-alpine@sha256:b40d931bd0e7ce6eecc59a5a6ac3b3c04a01e559750e73e7086b6dbd7f8bf545
+    environment:
+      POSTGRES_DB: kratos
+      POSTGRES_USER: kratos
+      POSTGRES_PASSWORD: secret
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - intranet
+
+  kratos-migrate:
+    image: oryd/kratos:v25.4.0@sha256:e8014c6c58b68e9d8bea4160d3e271b0d05b3db221af379afb6798b603e88ee9
+    environment:
+      - DSN=postgres://kratos:secret@postgres:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+    volumes:
+      - ./configs/kratos/kratos.yml:/etc/config/kratos/kratos.yml:ro
+      - ./configs/kratos/identity.schema.json:/etc/config/kratos/identity.schema.json:ro
+    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+    restart: on-failure
+    networks:
+      - intranet
+    depends_on:
+      - postgres
+
+  # HTTP proxy to forward Kratos webhook calls to host
+  webhook-proxy:
+    image: nginx:alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - intranet
+
+  kratos:
+    depends_on:
+      - kratos-migrate
+    image: oryd/kratos:v25.4.0@sha256:e8014c6c58b68e9d8bea4160d3e271b0d05b3db221af379afb6798b603e88ee9
+    ports:
+      - '4433:4433' # public
+      - '4434:4434' # admin
+    restart: unless-stopped
+    environment:
+      - DSN=postgres://kratos:secret@postgres:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+      - LOG_LEVEL=trace
+    command: serve -c /etc/config/kratos/kratos.yml --dev --watch-courier
+    volumes:
+      - ./configs/kratos/kratos.yml:/etc/config/kratos/kratos.yml:ro
+      - ./configs/kratos/identity.schema.json:/etc/config/kratos/identity.schema.json:ro
+    networks:
+      - intranet
+
+  mailslurper:
+    image: oryd/mailslurper:latest-smtps@sha256:d4b6583cc0f2715ca698c8ee2771b7d2e17d3c50f04070a1a1af63ba5867c615
+    ports:
+      - '4436:4436'
+      - '4437:4437'
+    networks:
+      - intranet
+
+networks:
+  intranet:
+
+volumes:
+  pgdata:
