@@ -1,5 +1,5 @@
 import { browserOry } from "@/lib/auth/kratos"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 import { z } from "zod"
 import type { FlowError } from "@ory/client"
@@ -15,9 +15,9 @@ const SearchSchema = z.object({
 
 function RouteComponent() {
   const { id } = Route.useSearch()
+  const navigate = useNavigate()
   const [error, setError] = useState<FlowError | null>(null)
   const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) {
@@ -31,12 +31,18 @@ function RouteComponent() {
         setError(response.data)
       })
       .catch((err) => {
-        setFetchError(err.message || "Failed to fetch error details")
+        const status = err?.response?.status
+        // 404: Error not found, 403: CSRF issue, 410: Error expired
+        if (status === 404 || status === 403 || status === 410) {
+          navigate({ to: "/" })
+          return
+        }
+        console.error("Failed to fetch error:", err)
       })
       .finally(() => {
         setLoading(false)
       })
-  }, [id])
+  }, [id, navigate])
 
   if (loading) {
     return (
@@ -46,23 +52,13 @@ function RouteComponent() {
     )
   }
 
-  if (!id) {
+  if (!id || !error) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
         <h1 className="text-2xl font-bold">Error</h1>
-        <p className="text-muted-foreground">No error ID provided.</p>
-        <Link to="/" className="text-primary underline">
-          Go back home
-        </Link>
-      </div>
-    )
-  }
-
-  if (fetchError) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
-        <h1 className="text-2xl font-bold text-destructive">Error</h1>
-        <p className="text-muted-foreground">{fetchError}</p>
+        <p className="text-muted-foreground">
+          {!id ? "No error ID provided." : "Error details not available."}
+        </p>
         <Link to="/" className="text-primary underline">
           Go back home
         </Link>

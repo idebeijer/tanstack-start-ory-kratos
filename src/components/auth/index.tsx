@@ -1,4 +1,4 @@
-import type { LoginFlow, RegistrationFlow } from "@ory/client"
+import type { LoginFlow, RegistrationFlow, SettingsFlow } from "@ory/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -33,7 +33,7 @@ export function HiddenNodes({ nodes }: HiddenNodesProps) {
 }
 
 interface PasskeyFormProps {
-  flow: LoginFlow | RegistrationFlow
+  flow: LoginFlow | RegistrationFlow | SettingsFlow
   hiddenNodes: any[]
   identifier?: string
   traits?: {

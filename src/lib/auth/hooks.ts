@@ -1,5 +1,10 @@
 import { useEffect, useState, useMemo } from "react"
-import type { LoginFlow, RegistrationFlow, UiNode } from "@ory/client"
+import type {
+  LoginFlow,
+  RegistrationFlow,
+  SettingsFlow,
+  UiNode,
+} from "@ory/client"
 import { browserOry } from "./kratos"
 
 export interface AuthFlowOptions {
@@ -114,7 +119,9 @@ export function useRegistrationFlow({
   return { flow, loading, error, reinitFlow: initFlow }
 }
 
-export function useWebAuthnScript(flow: LoginFlow | RegistrationFlow | null) {
+export function useWebAuthnScript(
+  flow: LoginFlow | RegistrationFlow | SettingsFlow | null
+) {
   useEffect(() => {
     if (!flow) return
 

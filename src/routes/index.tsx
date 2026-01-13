@@ -88,9 +88,14 @@ function Home() {
         )}
       </div>
 
-      <Button onClick={handleLogout} disabled={loggingOut} variant="outline">
-        {loggingOut ? "Logging out..." : "Logout"}
-      </Button>
+      <div className="flex gap-4">
+        <Button asChild variant="outline">
+          <Link to="/settings">Settings</Link>
+        </Button>
+        <Button onClick={handleLogout} disabled={loggingOut} variant="outline">
+          {loggingOut ? "Logging out..." : "Logout"}
+        </Button>
+      </div>
     </div>
   )
 }
