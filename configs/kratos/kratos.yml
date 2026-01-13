@@ -1,7 +1,5 @@
 version: v1.3.0
 
-dsn: memory
-
 serve:
   public:
     base_url: http://localhost:4433/
@@ -9,9 +7,6 @@ serve:
       enabled: true
       allowed_origins:
         - http://localhost:3000
-        - http://localhost:4455
-        - http://localhost:19006
-        - exp://localhost:8081
       allowed_methods:
         - GET
         - POST
@@ -35,11 +30,7 @@ session:
 selfservice:
   default_browser_return_url: http://localhost:3000/
   allowed_return_urls:
-    - http://localhost:4455
     - http://localhost:3000
-    - http://localhost:19006/Callback
-    - exp://localhost:8081/--/Callback
-
   methods:
     password:
       enabled: true
@@ -93,8 +84,8 @@ selfservice:
             - hook: web_hook
               config:
                 method: POST
-                url: http://webhook-proxy/api/v1/admin/webhooks/post-registration
-                body: base64://ZnVuY3Rpb24gKGN0eCkgewogIGV2ZW50OiAicmVnaXN0cmF0aW9uLmFmdGVyIiwKICBmbG93X2lkOiBjdHguZmxvdy5pZCwKICBmbG93X3R5cGU6IGN0eC5mbG93LnR5cGUsCiAgaWRlbnRpdHk6IHsKICAgIGlkOiBjdHguaWRlbnRpdHkuaWQsCiAgICBzY2hlbWFfaWQ6IGN0eC5pZGVudGl0eS5zY2hlbWFfaWQsCiAgICB0cmFpdHM6IGN0eC5pZGVudGl0eS50cmFpdHMsCiAgfSwKICByZXF1ZXN0OiB7CiAgICB1cmw6IGN0eC5yZXF1ZXN0X3VybCwKICAgIG1ldGhvZDogY3R4LnJlcXVlc3RfbWV0aG9kLAogIH0sCn0=
+                url: http://webhook-proxy/api/webhooks/post-registration
+                body: base64://ZnVuY3Rpb24gKGN0eCkgewogIGV2ZW50OiAicmVnaXN0cmF0aW9uLmFmdGVyIiwKICBmbG93X2lkOiBjdHguZmxvdy5pZCwKICBmbG93X3R5cGU6IGN0eC5mbG93LnR5cGUsCiAgaWRlbnRpdHk6IHsKICAgIHNjaGVtYV9pZDogY3R4LmlkZW50aXR5LnNjaGVtYV9pZCwKICAgIHRyYWl0czogY3R4LmlkZW50aXR5LnRyYWl0cywKICB9LAogIHJlcXVlc3Q6IHsKICAgIHVybDogY3R4LnJlcXVlc3RfdXJsLAogICAgbWV0aG9kOiBjdHgucmVxdWVzdF9tZXRob2QsCiAgfSwKfQ==
                 response:
                   ignore: false
                   parse: true
