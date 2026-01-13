@@ -6,8 +6,11 @@ This template demonstrates self-hosted Kratos integration, but should work with 
 
 ## Features
 
-- **Passkey authentication** – Currently the only supported auth method
-- **Registration & Login flows** – Using Kratos browser flows
+- **Passkey authentication** – WebAuthn-based passwordless login
+- **Email code authentication** – 6-digit code sent to email
+- **Email verification** – Required for passkey registrations
+- **Settings page** – Profile and passkey management
+- **Registration & Login flows** – Using Kratos browser flows with updateFlow APIs
 - **Post-registration webhook** – Example of syncing users to your own backend
 
 ## Project Structure
@@ -17,10 +20,13 @@ src/
 ├── lib/auth/
 │   ├── kratos.ts       # Ory client setup (browser + server)
 │   ├── hooks.ts        # React hooks for login/registration flows
-│   └── actions.ts      # Form submission handlers
+│   ├── actions.ts      # Form submission handlers
+│   └── errors.ts       # Ory-style error handling
 ├── routes/
-│   ├── login.tsx       # Login page
-│   ├── register.tsx    # Registration page (two-step: email → passkey)
+│   ├── login.tsx       # Login page (passkey + code)
+│   ├── register.tsx    # Registration page (two-step: email → passkey/code)
+│   ├── settings.tsx    # Account settings page
+│   ├── verification.tsx # Email verification page
 │   ├── error.tsx       # Kratos error display page
 │   └── api/webhooks/
 │       └── post-registration.ts  # Webhook endpoint for Kratos
@@ -39,7 +45,7 @@ This starts:
 
 - **PostgreSQL** – Kratos database
 - **Kratos** – Identity server (ports 4433/4434)
-- **Mailslurper** – Local email testing
+- **Mailslurper** – Local email testing (http://localhost:4436)
 - **webhook-proxy** – Nginx proxy for Docker→host webhook calls
 
 ### 2. Run the app
@@ -60,6 +66,15 @@ Configuration files are in `configs/kratos/`:
 - `kratos.yml` – Main Kratos config
 - `identity.schema.json` – User identity schema
 
+### Authentication Methods
+
+The template supports:
+
+| Method  | Login | Registration | Notes                                                              |
+| ------- | ----- | ------------ | ------------------------------------------------------------------ |
+| Passkey | ✅    | ✅           | Requires email verification after registration                     |
+| Code    | ✅    | ✅           | 6-digit code, no verification needed (code proves email ownership) |
+
 ### Webhook Proxy
 
 Kratos runs inside Docker and needs to call webhooks on your local dev server. The `webhook-proxy` nginx container proxies requests from Docker to `host.docker.internal:3000`.
@@ -78,18 +93,28 @@ The webhook receives the identity payload and returns an `external_id` that Krat
 
 See `configs/kratos/registration-after.jsonnet` for the webhook payload template.
 
+## Self-Service Flows
+
+| Flow         | URL             | Description                                     |
+| ------------ | --------------- | ----------------------------------------------- |
+| Login        | `/login`        | Email + code or passkey                         |
+| Register     | `/register`     | Two-step: email → choose passkey or code        |
+| Settings     | `/settings`     | Profile and passkey management                  |
+| Verification | `/verification` | Email verification (auto-triggered for passkey) |
+| Error        | `/error`        | Kratos error display                            |
+
 ## Development Notes
 
 ### Vite Host Validation
 
 The dev server is configured with `allowedHosts: true` in `vite.config.ts` to accept webhook requests from Docker containers.
 
-### Adding Authentication Methods
+### Error Handling
 
-Currently only Passkey is implemented. To add password or other methods:
+The `src/lib/auth/errors.ts` module provides Ory-style error handling:
 
-1. Enable them in `configs/kratos/kratos.yml`
-2. Update the UI components in `src/routes/login.tsx` and `src/routes/register.tsx`
+- `handleFlowError()` – Handles common flow errors (expired, CSRF, etc.)
+- `handleContinueWith()` – Processes `continue_with` actions (e.g., verification redirect)
 
 ## Scripts
 
