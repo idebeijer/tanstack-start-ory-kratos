@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerificationRouteImport } from './routes/verification'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ErrorRouteImport } from './routes/error'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiWebhooksPostRegistrationRouteImport } from './routes/api/webhooks/post-registration'
 
+const VerificationRoute = VerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/error': typeof ErrorRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/verification': typeof VerificationRoute
   '/api/webhooks/post-registration': typeof ApiWebhooksPostRegistrationRoute
 }
 export interface FileRoutesByTo {
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/error': typeof ErrorRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/verification': typeof VerificationRoute
   '/api/webhooks/post-registration': typeof ApiWebhooksPostRegistrationRoute
 }
 export interface FileRoutesById {
@@ -62,6 +70,7 @@ export interface FileRoutesById {
   '/error': typeof ErrorRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/verification': typeof VerificationRoute
   '/api/webhooks/post-registration': typeof ApiWebhooksPostRegistrationRoute
 }
 export interface FileRouteTypes {
@@ -71,6 +80,7 @@ export interface FileRouteTypes {
     | '/error'
     | '/login'
     | '/register'
+    | '/verification'
     | '/api/webhooks/post-registration'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -78,6 +88,7 @@ export interface FileRouteTypes {
     | '/error'
     | '/login'
     | '/register'
+    | '/verification'
     | '/api/webhooks/post-registration'
   id:
     | '__root__'
@@ -85,6 +96,7 @@ export interface FileRouteTypes {
     | '/error'
     | '/login'
     | '/register'
+    | '/verification'
     | '/api/webhooks/post-registration'
   fileRoutesById: FileRoutesById
 }
@@ -93,11 +105,19 @@ export interface RootRouteChildren {
   ErrorRoute: typeof ErrorRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  VerificationRoute: typeof VerificationRoute
   ApiWebhooksPostRegistrationRoute: typeof ApiWebhooksPostRegistrationRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verification': {
+      id: '/verification'
+      path: '/verification'
+      fullPath: '/verification'
+      preLoaderRoute: typeof VerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -141,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   ErrorRoute: ErrorRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  VerificationRoute: VerificationRoute,
   ApiWebhooksPostRegistrationRoute: ApiWebhooksPostRegistrationRoute,
 }
 export const routeTree = rootRouteImport

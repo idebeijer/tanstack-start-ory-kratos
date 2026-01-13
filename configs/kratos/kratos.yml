@@ -49,6 +49,8 @@ selfservice:
       passwordless_enabled: true
       passwordless_login_fallback_enabled: false
       mfa_enabled: false
+      config:
+        lifespan: 5m
 
   flows:
     error:
@@ -65,7 +67,7 @@ selfservice:
       use: code
 
     verification:
-      enabled: false
+      enabled: true
       ui_url: http://localhost:3000/verification
       use: code
       after:
@@ -97,6 +99,7 @@ selfservice:
                 headers:
                   Content-Type: application/json
             - hook: session
+            - hook: show_verification_ui
         code:
           hooks:
             - hook: web_hook

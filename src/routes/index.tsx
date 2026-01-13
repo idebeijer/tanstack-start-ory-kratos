@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { browserOry, logout } from "@/lib/auth"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import type { Session } from "@ory/client"
 import { useState, useEffect } from "react"
 
@@ -9,6 +9,7 @@ export const Route = createFileRoute("/")({
 })
 
 function Home() {
+  const navigate = useNavigate()
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [loggingOut, setLoggingOut] = useState(false)
@@ -18,6 +19,17 @@ function Home() {
       .toSession()
       .then(({ data }) => {
         setSession(data)
+
+        // Check if email is verified (for passkey registrations)
+        const verifiableAddresses = data.identity?.verifiable_addresses || []
+        const emailAddress = verifiableAddresses.find(
+          (addr) => addr.via === "email"
+        )
+
+        // If email exists and is not verified, redirect to verification
+        if (emailAddress && !emailAddress.verified) {
+          navigate({ to: "/verification" })
+        }
       })
       .catch(() => {
         setSession(null)
@@ -25,7 +37,7 @@ function Home() {
       .finally(() => {
         setLoading(false)
       })
-  }, [])
+  }, [navigate])
 
   async function handleLogout() {
     setLoggingOut(true)
