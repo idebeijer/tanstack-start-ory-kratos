@@ -114,6 +114,84 @@ export function PasskeyForm({
   )
 }
 
+interface CodeSendFormProps {
+  flow: LoginFlow | RegistrationFlow
+  hiddenNodes: any[]
+  identifier?: string
+  traits?: {
+    email: string
+  }
+  buttonLabel?: string
+}
+
+export function CodeSendForm({
+  flow,
+  hiddenNodes,
+  identifier,
+  traits,
+  buttonLabel = "Send code",
+}: CodeSendFormProps) {
+  return (
+    <form action={flow.ui.action} method={flow.ui.method}>
+      <HiddenNodes nodes={hiddenNodes} />
+
+      {/* Include identifier for login */}
+      {identifier && (
+        <input type="hidden" name="identifier" value={identifier} />
+      )}
+
+      {/* Include traits for registration */}
+      {traits && (
+        <input type="hidden" name="traits.email" value={traits.email} />
+      )}
+
+      <input type="hidden" name="method" value="code" />
+
+      <Button type="submit" className="w-full" variant="outline">
+        {buttonLabel}
+      </Button>
+    </form>
+  )
+}
+
+interface CodeInputFormProps {
+  flow: LoginFlow | RegistrationFlow
+  hiddenNodes: any[]
+}
+
+export function CodeInputForm({ flow, hiddenNodes }: CodeInputFormProps) {
+  return (
+    <form action={flow.ui.action} method={flow.ui.method}>
+      <HiddenNodes nodes={hiddenNodes} />
+      <input type="hidden" name="method" value="code" />
+
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="code" className="text-sm font-medium block mb-2">
+            Enter the 6-digit code from your email
+          </label>
+          <Input
+            id="code"
+            name="code"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={6}
+            placeholder="000000"
+            className="text-center text-2xl tracking-widest"
+            autoComplete="one-time-code"
+            required
+          />
+        </div>
+
+        <Button type="submit" className="w-full">
+          Verify
+        </Button>
+      </div>
+    </form>
+  )
+}
+
 interface FlowMessagesProps {
   messages?: Array<{ id: string | number; text: string; type?: string }>
 }

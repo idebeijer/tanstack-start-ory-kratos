@@ -1,5 +1,9 @@
-import { FlowMessages, HiddenNodes, PasskeyForm } from "@/components/auth"
-import { Button } from "@/components/ui/button"
+import {
+  FlowMessages,
+  PasskeyForm,
+  CodeSendForm,
+  CodeInputForm,
+} from "@/components/auth"
 import { z } from "zod"
 import {
   Field,
@@ -11,13 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { GalleryVerticalEnd } from "lucide-react"
-import {
-  handleAuthError,
-  submitLoginPassword,
-  useFlowNodes,
-  useLoginFlow,
-  useWebAuthnScript,
-} from "@/lib/auth"
+import { useFlowNodes, useLoginFlow, useWebAuthnScript } from "@/lib/auth"
 import { useState } from "react"
 
 export const Route = createFileRoute("/login")({
@@ -27,43 +25,18 @@ export const Route = createFileRoute("/login")({
 
 const SearchSchema = z.object({
   redirect: z.string().optional(),
-  aal: z.string().optional(), // optional: request higher AAL
-  refresh: z.coerce.boolean().optional(), // optional: force re-auth
+  aal: z.string().optional(),
+  refresh: z.coerce.boolean().optional(),
 })
 
 function RouteComponent() {
   const { redirect, aal, refresh } = Route.useSearch()
-  const { flow, loading, reinitFlow } = useLoginFlow({ redirect, aal, refresh })
-  const { hiddenDefaults, hasPasskey, csrfToken } = useFlowNodes(flow)
+  const { flow, loading } = useLoginFlow({ redirect, aal, refresh })
+  const { hiddenDefaults, hasPasskey, hasCodeInput } = useFlowNodes(flow)
 
   const [identifier, setIdentifier] = useState("")
-  const [password, setPassword] = useState("")
-  const [submitting, setSubmitting] = useState(false)
 
-  // Inject WebAuthn script when needed
   useWebAuthnScript(flow)
-
-  // Password form submission handler
-  async function onSubmitPassword(e: React.FormEvent) {
-    e.preventDefault()
-    if (!flow || submitting) return
-
-    setSubmitting(true)
-    try {
-      const result = await submitLoginPassword(
-        flow,
-        { identifier, password },
-        csrfToken,
-        redirect
-      )
-
-      if (!result.success && result.error) {
-        await handleAuthError(result.error, reinitFlow)
-      }
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   if (loading)
     return (
@@ -94,52 +67,51 @@ function RouteComponent() {
 
           <FlowMessages messages={flow?.ui.messages} />
 
-          {/* Passkey option - separate form */}
-          {hasPasskey && flow && (
-            <Field>
-              <PasskeyForm
-                flow={flow}
-                hiddenNodes={hiddenDefaults}
-                identifier={identifier}
-              />
-            </Field>
+          {/* Step 2: Code input (after email sent) */}
+          {hasCodeInput && flow && (
+            <CodeInputForm flow={flow} hiddenNodes={hiddenDefaults} />
           )}
 
-          <FieldSeparator>Or</FieldSeparator>
+          {/* Step 1: Email entry (before code sent) */}
+          {!hasCodeInput && (
+            <>
+              {/* Passkey option */}
+              {hasPasskey && flow && (
+                <Field>
+                  <PasskeyForm
+                    flow={flow}
+                    hiddenNodes={hiddenDefaults}
+                    identifier={identifier}
+                  />
+                </Field>
+              )}
 
-          {/* Password/magic link form */}
-          <form onSubmit={onSubmitPassword}>
-            <HiddenNodes nodes={hiddenDefaults} />
-            <FieldGroup>
-              <Field>
-                <Label htmlFor="identifier">Email</Label>
-                <Input
-                  id="identifier"
-                  name="identifier"
-                  type="email"
-                  autoComplete="username"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  required
-                  // disabled={submitting}
-                  disabled={true}
-                  placeholder="me@example.com"
-                />
-              </Field>
+              <FieldSeparator>Or</FieldSeparator>
 
-              <Field>
-                <Button
-                  type="submit"
-                  // disabled={submitting}
-                  disabled={true}
-                  className="w-full"
-                  variant={"outline"}
-                >
-                  {submitting ? "Sending..." : "Send magic link"}
-                </Button>
-              </Field>
-            </FieldGroup>
-          </form>
+              {/* Email + code form */}
+              {flow && (
+                <Field>
+                  <Label htmlFor="identifier" className="mb-2 block">
+                    Email
+                  </Label>
+                  <Input
+                    id="identifier"
+                    type="email"
+                    autoComplete="username"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="me@example.com"
+                    className="mb-4"
+                  />
+                  <CodeSendForm
+                    flow={flow}
+                    hiddenNodes={hiddenDefaults}
+                    identifier={identifier}
+                  />
+                </Field>
+              )}
+            </>
+          )}
         </FieldGroup>
       </div>
     </div>

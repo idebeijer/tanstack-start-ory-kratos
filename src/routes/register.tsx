@@ -1,12 +1,15 @@
-import { FlowMessages, PasskeyForm, ProfileForm } from "@/components/auth"
+import {
+  FlowMessages,
+  PasskeyForm,
+  ProfileForm,
+  CodeSendForm,
+  CodeInputForm,
+} from "@/components/auth"
 import { z } from "zod"
-import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSeparator } from "@/components/ui/field"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import {
-  handleAuthError,
-  submitRegistrationPassword,
   useFlowNodes,
   useRegistrationFlow,
   useWebAuthnScript,
@@ -23,41 +26,13 @@ const SearchSchema = z.object({
 
 function RouteComponent() {
   const { redirect } = Route.useSearch()
-  const { flow, loading, reinitFlow } = useRegistrationFlow({ redirect })
-  const { hiddenDefaults, hasPasskey, hasProfileMethod, csrfToken } =
+  const { flow, loading } = useRegistrationFlow({ redirect })
+  const { hiddenDefaults, hasPasskey, hasProfileMethod, hasCodeInput } =
     useFlowNodes(flow)
 
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [submitting, setSubmitting] = useState(false)
 
-  // Inject WebAuthn script when needed
   useWebAuthnScript(flow)
-
-  // Password submit handler
-  async function submitPassword(e: React.FormEvent) {
-    e.preventDefault()
-    if (!flow || submitting) return
-
-    setSubmitting(true)
-    try {
-      const result = await submitRegistrationPassword(
-        flow,
-        {
-          email,
-          password,
-        },
-        csrfToken,
-        redirect
-      )
-
-      if (!result.success && result.error) {
-        await handleAuthError(result.error, reinitFlow)
-      }
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   if (loading)
     return (
@@ -73,8 +48,13 @@ function RouteComponent() {
           <FlowMessages messages={flow?.ui.messages} />
         </div>
 
-        {/* STEP 1: Profile (two-step registration) */}
-        {hasProfileMethod && !hasPasskey && flow && (
+        {/* Step 3: Code input (after email sent) */}
+        {hasCodeInput && flow && (
+          <CodeInputForm flow={flow} hiddenNodes={hiddenDefaults} />
+        )}
+
+        {/* Step 1: Profile (email entry) */}
+        {!hasCodeInput && hasProfileMethod && !hasPasskey && flow && (
           <ProfileForm
             flow={flow}
             hiddenNodes={hiddenDefaults}
@@ -83,35 +63,26 @@ function RouteComponent() {
           />
         )}
 
-        {/* STEP 2: Credential methods (now passkey nodes exist) */}
-        {hasPasskey && (
+        {/* Step 2: Credential methods (passkey or code) */}
+        {!hasCodeInput && hasPasskey && flow && (
           <div className="space-y-4">
-            {/* Passkey option */}
-            {flow && (
-              <div className="space-y-4">
-                <FieldGroup>
-                  <Field>
-                    <PasskeyForm
-                      flow={flow}
-                      hiddenNodes={hiddenDefaults}
-                      traits={{ email }}
-                    />
-                  </Field>
-                  <FieldSeparator>Or</FieldSeparator>
-                  <Field>
-                    <Button
-                      type="submit"
-                      // disabled={submitting}
-                      disabled={true}
-                      className="w-full"
-                      variant={"outline"}
-                    >
-                      {submitting ? "Sending..." : "Send magic link"}
-                    </Button>
-                  </Field>
-                </FieldGroup>
-              </div>
-            )}
+            <FieldGroup>
+              <Field>
+                <PasskeyForm
+                  flow={flow}
+                  hiddenNodes={hiddenDefaults}
+                  traits={{ email }}
+                />
+              </Field>
+              <FieldSeparator>Or</FieldSeparator>
+              <Field>
+                <CodeSendForm
+                  flow={flow}
+                  hiddenNodes={hiddenDefaults}
+                  traits={{ email }}
+                />
+              </Field>
+            </FieldGroup>
           </div>
         )}
       </div>

@@ -157,6 +157,7 @@ export function useFlowNodes(flow: LoginFlow | RegistrationFlow | null) {
         passkeyNodes: [],
         hasPasskey: false,
         hasProfileMethod: false,
+        hasCodeInput: false,
         csrfToken: undefined,
       }
 
@@ -176,6 +177,11 @@ export function useFlowNodes(flow: LoginFlow | RegistrationFlow | null) {
       (n: any) => n.group === "profile" && n.attributes?.name === "method"
     )
 
+    // Check if we're in the code entry step
+    const hasCodeInput = !!flow.ui.nodes.find(
+      (n: any) => n.group === "code" && n.attributes?.name === "code"
+    )
+
     const csrfNode = flow.ui.nodes.find(
       (n: UiNode) => (n as any).attributes?.name === "csrf_token"
     ) as any
@@ -186,6 +192,7 @@ export function useFlowNodes(flow: LoginFlow | RegistrationFlow | null) {
       passkeyNodes,
       hasPasskey,
       hasProfileMethod,
+      hasCodeInput,
       csrfToken,
     }
   }, [flow?.id])

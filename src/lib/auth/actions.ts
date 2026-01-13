@@ -3,15 +3,10 @@ import { browserOry } from "./kratos"
 
 export interface LoginCredentials {
   identifier: string
-  password: string
 }
 
 export interface RegistrationTraits {
   email: string
-}
-
-export interface RegistrationCredentials extends RegistrationTraits {
-  password: string
 }
 
 export interface AuthError {
@@ -21,30 +16,26 @@ export interface AuthError {
   shouldReinitFlow?: boolean
 }
 
-export async function submitLoginPassword(
+export async function submitLoginCode(
   flow: LoginFlow,
-  credentials: LoginCredentials,
-  csrfToken?: string,
-  redirect?: string
+  identifier: string,
+  csrfToken?: string
 ): Promise<{ success: boolean; error?: AuthError }> {
   try {
     await browserOry.updateLoginFlow({
       flow: flow.id,
       updateLoginFlowBody: {
-        method: "password",
-        identifier: credentials.identifier,
-        password: credentials.password,
+        method: "code",
+        identifier,
         csrf_token: csrfToken,
       } as any,
     })
 
-    // Success - redirect
-    window.location.href = redirect || "/"
+    // Flow updated - Kratos will show message about email sent
     return { success: true }
   } catch (err: any) {
-    console.error("updateLoginFlow (password) error", err)
+    console.error("updateLoginFlow (code) error", err)
 
-    // Handle specific error cases
     const data = err?.response?.data
     const status = err?.response?.status
 
@@ -80,30 +71,27 @@ export async function submitLoginPassword(
   }
 }
 
-export async function submitRegistrationPassword(
+export async function submitRegistrationCode(
   flow: RegistrationFlow,
-  credentials: RegistrationCredentials,
-  csrfToken?: string,
-  redirect?: string
+  email: string,
+  csrfToken?: string
 ): Promise<{ success: boolean; error?: AuthError }> {
   try {
     await browserOry.updateRegistrationFlow({
       flow: flow.id,
       updateRegistrationFlowBody: {
-        method: "password",
+        method: "code",
         traits: {
-          email: credentials.email,
+          email,
         },
-        password: credentials.password,
         csrf_token: csrfToken,
       } as any,
     })
 
-    // Success - redirect
-    window.location.href = redirect || "/"
+    // Flow updated - Kratos will show message about email sent
     return { success: true }
   } catch (err: any) {
-    console.error("updateRegistrationFlow (password) error", err)
+    console.error("updateRegistrationFlow (code) error", err)
 
     const data = err?.response?.data
     const status = err?.response?.status
@@ -163,7 +151,6 @@ export async function logout(): Promise<void> {
     window.location.href = data.logout_url
   } catch (err) {
     console.error("Failed to create logout flow", err)
-    // If logout fails, redirect to home anyway
     window.location.href = "/"
   }
 }

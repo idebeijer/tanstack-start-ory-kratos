@@ -33,7 +33,7 @@ selfservice:
     - http://localhost:3000
   methods:
     password:
-      enabled: true
+      enabled: false
     webauthn:
       enabled: false
     passkey:
@@ -44,6 +44,11 @@ selfservice:
           id: localhost
           origins:
             - http://localhost:3000
+    code:
+      enabled: true
+      passwordless_enabled: true
+      passwordless_login_fallback_enabled: false
+      mfa_enabled: false
 
   flows:
     error:
@@ -92,10 +97,19 @@ selfservice:
                 headers:
                   Content-Type: application/json
             - hook: session
-        password:
+        code:
           hooks:
+            - hook: web_hook
+              config:
+                method: POST
+                url: http://webhook-proxy/api/webhooks/post-registration
+                body: base64://ZnVuY3Rpb24gKGN0eCkgewogIGV2ZW50OiAicmVnaXN0cmF0aW9uLmFmdGVyIiwKICBmbG93X2lkOiBjdHguZmxvdy5pZCwKICBmbG93X3R5cGU6IGN0eC5mbG93LnR5cGUsCiAgaWRlbnRpdHk6IHsKICAgIHNjaGVtYV9pZDogY3R4LmlkZW50aXR5LnNjaGVtYV9pZCwKICAgIHRyYWl0czogY3R4LmlkZW50aXR5LnRyYWl0cywKICB9LAogIHJlcXVlc3Q6IHsKICAgIHVybDogY3R4LnJlcXVlc3RfdXJsLAogICAgbWV0aG9kOiBjdHgucmVxdWVzdF9tZXRob2QsCiAgfSwKfQ==
+                response:
+                  ignore: false
+                  parse: true
+                headers:
+                  Content-Type: application/json
             - hook: session
-            - hook: show_verification_ui
 
 log:
   level: debug
