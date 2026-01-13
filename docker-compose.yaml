@@ -60,6 +60,21 @@ services:
     networks:
       - intranet
 
+  # TanStack Start app (only starts with --profile app) TODO: doesn't work with passkey script yet CORS issue
+  app:
+    build: .
+    profiles:
+      - app
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_ORY_SDK_URL=http://localhost:4433
+      - ORY_SDK_URL=http://kratos:4433
+    depends_on:
+      - kratos
+    networks:
+      - intranet
+
 networks:
   intranet:
 

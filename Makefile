@@ -16,6 +16,10 @@ all: build
 up: ## Start dependencies using docker-compose.
 	docker compose up -d
 
+.PHONY: up-app
+up-app: ## Start app using docker-compose.
+	docker compose --profile app up -d
+
 .PHONY: down
 down: ## Stop dependencies using docker-compose.
-	docker compose down -v
+	docker compose --profile app down -v
