@@ -32,20 +32,30 @@ export function useLoginFlow({ redirect, aal, refresh }: AuthFlowOptions = {}) {
   }
 
   useEffect(() => {
-    const url = new URL(window.location.href)
-    const flowId = url.searchParams.get("flow")
+    // Check if already authenticated before creating flow
+    browserOry
+      .toSession()
+      .then(() => {
+        // Already logged in, redirect to home
+        window.location.href = "/"
+      })
+      .catch(() => {
+        // Not authenticated, proceed with flow
+        const url = new URL(window.location.href)
+        const flowId = url.searchParams.get("flow")
 
-    if (flowId) {
-      browserOry
-        .getLoginFlow({ id: flowId })
-        .then(({ data }) => {
-          setFlow(data)
-          setLoading(false)
-        })
-        .catch(() => initFlow())
-    } else {
-      initFlow()
-    }
+        if (flowId) {
+          browserOry
+            .getLoginFlow({ id: flowId })
+            .then(({ data }) => {
+              setFlow(data)
+              setLoading(false)
+            })
+            .catch(() => initFlow())
+        } else {
+          initFlow()
+        }
+      })
   }, [redirect, aal, refresh])
 
   return { flow, loading, error, reinitFlow: initFlow }
@@ -75,20 +85,30 @@ export function useRegistrationFlow({
   }
 
   useEffect(() => {
-    const url = new URL(window.location.href)
-    const flowId = url.searchParams.get("flow")
+    // Check if already authenticated before creating flow
+    browserOry
+      .toSession()
+      .then(() => {
+        // Already logged in, redirect to home
+        window.location.href = "/"
+      })
+      .catch(() => {
+        // Not authenticated, proceed with flow
+        const url = new URL(window.location.href)
+        const flowId = url.searchParams.get("flow")
 
-    if (flowId) {
-      browserOry
-        .getRegistrationFlow({ id: flowId })
-        .then(({ data }) => {
-          setFlow(data)
-          setLoading(false)
-        })
-        .catch(() => initFlow())
-    } else {
-      initFlow()
-    }
+        if (flowId) {
+          browserOry
+            .getRegistrationFlow({ id: flowId })
+            .then(({ data }) => {
+              setFlow(data)
+              setLoading(false)
+            })
+            .catch(() => initFlow())
+        } else {
+          initFlow()
+        }
+      })
   }, [redirect])
 
   return { flow, loading, error, reinitFlow: initFlow }

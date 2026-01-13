@@ -156,3 +156,14 @@ export async function handleAuthError(
 
   console.error("Auth error:", error.message)
 }
+
+export async function logout(): Promise<void> {
+  try {
+    const { data } = await browserOry.createBrowserLogoutFlow()
+    window.location.href = data.logout_url
+  } catch (err) {
+    console.error("Failed to create logout flow", err)
+    // If logout fails, redirect to home anyway
+    window.location.href = "/"
+  }
+}
