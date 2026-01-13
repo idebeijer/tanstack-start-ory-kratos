@@ -75,71 +75,72 @@ function RouteComponent() {
   return (
     <div className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="w-full max-w-sm">
-        {/* Password form */}
-        <form onSubmit={onSubmitPassword}>
-          <FieldGroup>
-            <div className="flex flex-col items-center gap-2 text-center">
-              <Link
-                to="/"
-                className="flex flex-col items-center gap-2 font-medium"
-              >
-                <div className="flex size-8 items-center justify-center rounded-md">
-                  <GalleryVerticalEnd className="size-6" />
-                </div>
-                <span className="sr-only">ACME</span>
-              </Link>
-              <h1 className="text-xl font-bold">Welcome to ACME</h1>
-              <FieldDescription>
-                Don&apos;t have an account? <Link to="/register">Sign up</Link>
-              </FieldDescription>
-            </div>
+        <FieldGroup>
+          <div className="flex flex-col items-center gap-2 text-center">
+            <Link
+              to="/"
+              className="flex flex-col items-center gap-2 font-medium"
+            >
+              <div className="flex size-8 items-center justify-center rounded-md">
+                <GalleryVerticalEnd className="size-6" />
+              </div>
+              <span className="sr-only">ACME</span>
+            </Link>
+            <h1 className="text-xl font-bold">Welcome to ACME</h1>
+            <FieldDescription>
+              Don&apos;t have an account? <Link to="/register">Sign up</Link>
+            </FieldDescription>
+          </div>
 
-            <HiddenNodes nodes={hiddenDefaults} />
+          <FlowMessages messages={flow?.ui.messages} />
 
-            <FlowMessages messages={flow?.ui.messages} />
-
-            {/* Passkey option */}
-            {hasPasskey && flow && (
-              <Field>
-                <PasskeyForm
-                  flow={flow}
-                  hiddenNodes={hiddenDefaults}
-                  identifier={identifier}
-                />
-              </Field>
-            )}
-
-            <FieldSeparator>Or</FieldSeparator>
-
+          {/* Passkey option - separate form */}
+          {hasPasskey && flow && (
             <Field>
-              <Label htmlFor="identifier">Email</Label>
-              <Input
-                id="identifier"
-                name="identifier"
-                type="email"
-                autoComplete="username"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                required
-                // disabled={submitting}
-                disabled={true}
-                placeholder="me@example.com"
+              <PasskeyForm
+                flow={flow}
+                hiddenNodes={hiddenDefaults}
+                identifier={identifier}
               />
             </Field>
+          )}
 
-            <Field>
-              <Button
-                type="submit"
-                // disabled={submitting}
-                disabled={true}
-                className="w-full"
-                variant={"outline"}
-              >
-                {submitting ? "Sending..." : "Send magic link"}
-              </Button>
-            </Field>
-          </FieldGroup>
-        </form>
+          <FieldSeparator>Or</FieldSeparator>
+
+          {/* Password/magic link form */}
+          <form onSubmit={onSubmitPassword}>
+            <HiddenNodes nodes={hiddenDefaults} />
+            <FieldGroup>
+              <Field>
+                <Label htmlFor="identifier">Email</Label>
+                <Input
+                  id="identifier"
+                  name="identifier"
+                  type="email"
+                  autoComplete="username"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  required
+                  // disabled={submitting}
+                  disabled={true}
+                  placeholder="me@example.com"
+                />
+              </Field>
+
+              <Field>
+                <Button
+                  type="submit"
+                  // disabled={submitting}
+                  disabled={true}
+                  className="w-full"
+                  variant={"outline"}
+                >
+                  {submitting ? "Sending..." : "Send magic link"}
+                </Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        </FieldGroup>
       </div>
     </div>
   )
