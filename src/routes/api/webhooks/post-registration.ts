@@ -34,6 +34,8 @@ export const Route = createFileRoute("/api/webhooks/post-registration")({
         try {
           const payload = (await request.json()) as RegistrationPayload
 
+          // TODO: protect this endpoint, should be private and callable by Kratos only
+
           // Validate the event type
           if (payload.event !== "registration.after") {
             return Response.json(
